@@ -435,7 +435,14 @@ class FireworksAIConfig(OpenAIGPTConfig):
         litellm_params: dict,
         headers: dict,
     ) -> dict:
-        if not model.startswith("accounts/") and "#" not in model:
+        # Azure AI Foundry (and similar OpenAI-compat hosts) use the Fireworks
+        # chat config but expose deployment ids like ``FW-Kimi-K3``. Rewriting
+        # those to ``accounts/fireworks/models/FW-…`` yields DeploymentNotFound.
+        if (
+            not model.startswith("accounts/")
+            and "#" not in model
+            and not model.startswith("FW-")
+        ):
             if model.endswith("-fast"):
                 model = f"accounts/fireworks/routers/{model}"
             else:
