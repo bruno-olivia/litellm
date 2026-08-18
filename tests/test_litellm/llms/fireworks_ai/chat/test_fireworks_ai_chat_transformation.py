@@ -554,6 +554,35 @@ def test_transform_request_routes_short_form_model_to_models_path():
     assert result["model"] == "accounts/fireworks/models/glm-5p2"
 
 
+def test_transform_request_preserves_fw_prefixed_foundry_deployment_ids():
+    """Azure AI Foundry Fireworks-hosted deployments keep their deployment id.
+
+    ``FW-Kimi-K3`` must not become ``accounts/fireworks/models/FW-Kimi-K3``.
+    """
+    config = FireworksAIConfig()
+    result = config.transform_request(
+        model="FW-Kimi-K3",
+        messages=[{"role": "user", "content": "Hi"}],
+        optional_params={},
+        litellm_params={},
+        headers={},
+    )
+    assert result["model"] == "FW-Kimi-K3"
+
+
+def test_transform_request_preserves_fw_prefixed_fast_deployment_ids():
+    """``FW-*-fast`` ids must not be routed to ``accounts/fireworks/routers/``."""
+    config = FireworksAIConfig()
+    result = config.transform_request(
+        model="FW-GLM-5.2-Fast",
+        messages=[{"role": "user", "content": "Hi"}],
+        optional_params={},
+        litellm_params={},
+        headers={},
+    )
+    assert result["model"] == "FW-GLM-5.2-Fast"
+
+
 def _make_fireworks_raw_response(body: dict) -> MagicMock:
     mock = MagicMock()
     mock.status_code = 200
